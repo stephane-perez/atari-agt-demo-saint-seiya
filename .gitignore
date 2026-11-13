@@ -1,0 +1,6 @@
+build/
+disk1/
+cache/
+assets/
+*.tos
+*.img

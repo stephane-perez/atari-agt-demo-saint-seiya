@@ -1,0 +1,32 @@
+Saints run! v0.8.1 - 5 personnages + musique lue sur le disque dur par DMA ACSI (Atari STE, 4 Mo, TOS 1.62, HDDRIVER)
+
+Copier tout le dossier SAINTS/ sur le disque dur, de preference SANS FRAGMENTATION (copier le dossier sur une partition ou
+l'on n'a rien efface, le fichier MUSIC.SGN doit etre en secteurs consecutifs), et lancer SAINTS.PRG. ESC ou ESPACE pour quitter.
+
+Nouveau en 0.8.1 : demarrage beaucoup plus rapide. AGT calculait un CRC (en C, avec une multiplication 32 bits par mot) sur chaque fichier
+non compresse (5 x ~600 Ko) au chargement ; ce controle est desactive (AGT_CONFIG_NO_UNWRAPCRC, patch dans src/agt_nocrc.patch).
+Mesure dans Hatari 2.4.1 (STE, TOS 1.62, disque GEMDOS) : programme pret apres 63,6 s emulees avant, 9,8 s apres (boot TOS inclus).
+Pas mesure sur la vraie machine.
+
+Touches
+  F1       scenario 1 (demarrage) : chaque heros arrive par un saut depuis la gauche, atterrit et court au centre, puis accelere et
+           part a droite quand le suivant arrive. 2 personnages au maximum a l'ecran.
+  F2       scenario 2 : UN SEUL personnage a l'ecran : saut depuis la gauche, course au centre, acceleration vers la droite, puis le
+           suivant (Seiya, Shiryu, Hyoga, Shun, Ikki).
+  HELP     musique on/off (la remise en marche repart du debut)
+  UNDO     sprites on/off
+  ALTERNATE (maintenue) : jauge CPU sur la couleur 0 (fond/bordure) : vert = scenario, bleu = fond+sprites, rouge = disque
+           (envoi des commandes ACSI) ; la couleur normale revient quand le CPU attend la VBL.
+
+Lecture du disque (nouveau, methode de RUNICD.TOS) : au lieu de GEMDOS Fread, qui bloque le processeur le temps du transfert,
+le programme envoie lui-meme une commande ICD READ(10) a l'UltraSatan (ou ACSI READ(6) si le disque ne comprend pas l'ICD) puis
+continue son travail : le DMA ACSI remplit le tampon tout seul, et la fin du transfert est constatee a l'image suivante.
+Le programme retrouve la position du fichier sur le disque en interceptant hdv_rw pendant un Fread, il recupere l'id ACSI et le
+debut de partition dans PUN_INFO, verifie que le fichier est contigu (4 points testes) et qu'un secteur lu par DMA est identique
+a ce que Fread renvoie. Si l'une de ces verifications echoue (fichier fragmente, disque IDE, pas de PUN_INFO...), il lit avec
+Fread (lectures de 2 a 48 Ko, taille adaptee automatiquement). Message au demarrage :
+   "music: ACSI DMA reads, ICD, drive N"   ou   "music: Fread (no ACSI DMA, code C)"
+   codes : -1 pas de PUN_INFO, -2 Rwabs non vu, -3 pas un disque ACSI, -4 fichier fragmente, -5 lecture brute differente, -6 BPB, -7 RAM
+Tampon circulaire = RAM libre - 20 Ko (~135 Ko sur STE 4 Mo). MUSIC.SGN = WAV a echantillons signes (MUSIC.WAV non signe accepte aussi :
+src/wav2sgn.py le convertit). Frequence inchangee : 25000 Hz lu a 25033 Hz.
+La fin du fichier (moins de 512 octets) est ignoree a chaque boucle (< 6 ms).

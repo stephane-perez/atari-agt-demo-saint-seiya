@@ -1,0 +1,60 @@
+diff --git a/agtsys/slabsheet.cpp b/agtsys/slabsheet.cpp
+index dc88729..2f4c73d 100644
+--- a/agtsys/slabsheet.cpp
++++ b/agtsys/slabsheet.cpp
+@@ -60,6 +60,7 @@ bool slabsheet::load_sls(const char* const _filename)
+ 		data_ = (sls_header*)(passet+4);
+ 
+ 		// run crc only if not wrapped
++#if !defined(AGT_CONFIG_NO_UNWRAPCRC)
+ 		if (!packed_flag)
+ 		{
+ 			// skip prefix & crc
+@@ -73,6 +74,7 @@ bool slabsheet::load_sls(const char* const _filename)
+ 				AGT_HALT();
+ 			}
+ 		}
++#endif
+ 
+ 		if (data_->version == SLS_VERSION)
+ 		{
+diff --git a/agtsys/spritesheet.cpp b/agtsys/spritesheet.cpp
+index c5a598c..415829c 100644
+--- a/agtsys/spritesheet.cpp
++++ b/agtsys/spritesheet.cpp
+@@ -63,6 +63,7 @@ bool spritesheet::load(const char* const _filename, bool _preshift)
+ 		data_ = (sps_header*)(passet+4);
+ 
+ 		// run crc only if not wrapped
++#if !defined(AGT_CONFIG_NO_UNWRAPCRC)
+ 		if (!packed_flag)
+ 		{
+ 			// skip prefix & crc
+@@ -77,6 +78,7 @@ bool spritesheet::load(const char* const _filename, bool _preshift)
+ 				AGT_HALT();
+ 			}
+ 		}
++#endif
+ 
+ 		if (data_->version == SPS_VERSION)
+ 		{
+diff --git a/agtsys/tileset.cpp b/agtsys/tileset.cpp
+index ae41fd7..1af21bb 100644
+--- a/agtsys/tileset.cpp
++++ b/agtsys/tileset.cpp
+@@ -94,6 +94,7 @@ bool tileset::load_cct(const char* const _filename)
+ 		// interpret file header
+ 		cct_header &header = *(cct_header*)tiles_alloc_;			
+ 
++#if !defined(AGT_CONFIG_NO_UNWRAPCRC)
+ 		if (!packed_flag)
+ 		{
+ 			u32 actual_crc = gen_crc((u16*)(passet+4), (size-4)>>1);
+@@ -106,6 +107,7 @@ bool tileset::load_cct(const char* const _filename)
+ 				AGT_HALT();
+ 			}
+ 		}
++#endif
+ 
+ 		s16 tilewords = interpret_header(header);
+ 
